@@ -190,8 +190,8 @@ const App = (() => {
       <div class="nav-item" data-page="inmuebles">
         <span class="nav-icon">🏗️</span> Inmuebles
       </div>
-      <div class="nav-item" data-page="inquilinos">
-        <span class="nav-icon">👥</span> Inquilinos
+      <div class="nav-item" data-page="PEDIDOS">
+        <span class="nav-icon">👥</span> PEDIDOS
       </div>
       <span class="nav-section-label">Personal</span>
       <div class="nav-item" data-page="personal">
@@ -231,8 +231,8 @@ const App = (() => {
       <div class="nav-item" data-page="inmuebles">
         <span class="nav-icon">🏗️</span> Inmuebles
       </div>
-      <div class="nav-item" data-page="inquilinos">
-        <span class="nav-icon">👥</span> Inquilinos
+      <div class="nav-item" data-page="PEDIDOS">
+        <span class="nav-icon">👥</span> PEDIDOS
       </div>
       <span class="nav-section-label">Personal</span>
       <div class="nav-item" data-page="personal">
@@ -262,8 +262,8 @@ const App = (() => {
       <div class="nav-item" data-page="socio-ganancias">
         <span class="nav-icon">🏷️</span> Compra / Venta
       </div>
-      <div class="nav-item" data-page="socio-inquilinos">
-        <span class="nav-icon">📊</span> Balance Inquilinos
+      <div class="nav-item" data-page="socio-PEDIDOS">
+        <span class="nav-icon">📊</span> Balance PEDIDOS
       </div>
     `;
 
@@ -309,7 +309,7 @@ const App = (() => {
     const titles = {
       dashboard: ['Dashboard', 'Inicio / Dashboard'],
       inmuebles: ['Inmuebles', 'Inicio / Inmuebles'],
-      inquilinos: ['Inquilinos', 'Inicio / Inquilinos'],
+      PEDIDOS: ['PEDIDOS', 'Inicio / PEDIDOS'],
       personal: ['Personal', 'Inicio / Personal'],
       finanzas: ['Finanzas', 'Inicio / Finanzas'],
       pagos: ['Pagos & Cobros', 'Inicio / Pagos'],
@@ -320,7 +320,7 @@ const App = (() => {
       configuracion: ['Configuración', 'Inicio / Configuración'],
       'socio-dashboard': ['Mi Dashboard', 'Panel Socio'],
       'socio-ganancias': ['Ganancias Compra/Venta', 'Panel Socio'],
-      'socio-inquilinos': ['Ganancias Inquilinos', 'Panel Socio'],
+      'socio-PEDIDOS': ['Ganancias PEDIDOS', 'Panel Socio'],
       'mi-cuenta': ['Mi Cuenta', 'Mi Panel'],
       'mis-pagos': ['Mis Pagos', 'Mi Panel'],
       'mis-servicios': ['Mis Servicios', 'Mi Panel'],
@@ -448,7 +448,7 @@ const App = (() => {
           <div class="stat-card blue">
             <div class="stat-icon">👥</div>
             <div class="stat-value">${tenants.length}</div>
-            <div class="stat-label">Inquilinos Activos</div>
+            <div class="stat-label">PEDIDOS Activos</div>
           </div>
           <div class="stat-card green">
             <div class="stat-icon">💰</div>
@@ -466,14 +466,14 @@ const App = (() => {
           <div class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Inmuebles Recientes</div>
+                <div class="card-title">Contratos</div>
                 <div class="card-subtitle">Últimos registrados</div>
               </div>
               <button class="btn btn-primary btn-sm" onclick="App.navigate('inmuebles')">Ver todos →</button>
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Nombre</th><th>Tipo</th><th>Inquilinos</th><th>Estado</th></tr></thead>
+                <thead><tr><th>Nombre</th><th>Tipo</th><th>PEDIDOS</th><th>Estado</th></tr></thead>
                 <tbody>
                   ${props.slice(0,5).map(p => `
                     <tr>
@@ -654,7 +654,7 @@ const App = (() => {
 
         <div class="tabs" style="margin-bottom:20px">
           <button class="tab-btn active" onclick="switchTab(this,'tab-info')">Información</button>
-          <button class="tab-btn" onclick="switchTab(this,'tab-tenants')">Inquilinos (${tenants.length})</button>
+          <button class="tab-btn" onclick="switchTab(this,'tab-tenants')">PEDIDOS (${tenants.length})</button>
           <button class="tab-btn" onclick="switchTab(this,'tab-staff')">Personal</button>
           <button class="tab-btn" onclick="switchTab(this,'tab-finance')">Finanzas</button>
           <button class="tab-btn" onclick="switchTab(this,'tab-photos')">Fotos</button>
@@ -683,7 +683,7 @@ const App = (() => {
         <!-- TAB: Tenants -->
         <div class="tab-content" id="tab-tenants">
           <div class="toolbar">
-            <div class="card-title">Inquilinos del Inmueble</div>
+            <div class="card-title">PEDIDOS del Inmueble</div>
             ${canManage() ? `<button class="btn btn-primary btn-sm" onclick="App.modals.newTenant('${prop.id}')">＋ Agregar Inquilino</button>` : ''}
           </div>
           <div class="card">
@@ -700,7 +700,7 @@ const App = (() => {
                       <td><span class="badge badge-${t.status==='activo'?'green':'gray'}">${t.status||'activo'}</span></td>
                       <td><button class="btn btn-secondary btn-xs" onclick="App.navigate('inquilino-detalle',{id:'${t.id}'})">Ver →</button></td>
                     </tr>
-                  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Sin inquilinos</td></tr>'}
+                  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">Sin PEDIDOS</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -848,15 +848,15 @@ const App = (() => {
     `).join('');
   }
 
-  // ── INQUILINOS ───────────────────────────────────────────────────
-  Pages.inquilinos = async function() {
+  // ── PEDIDOS ───────────────────────────────────────────────────
+  Pages.PEDIDOS = async function() {
     const pc = document.getElementById('page-content');
     try {
       const [tenants, props] = await Promise.all([DB.get('tenants'), DB.get('properties')]);
       pc.innerHTML = `
         <div class="section-header">
           <div>
-            <div class="section-title">Inquilinos</div>
+            <div class="section-title">PEDIDOS</div>
             <div class="section-subtitle">${tenants.length} inquilino(s)</div>
           </div>
           ${canManage() ? `<button class="btn btn-primary" onclick="App.modals.newTenant()">＋ Agregar Inquilino</button>` : ''}
@@ -891,7 +891,7 @@ const App = (() => {
   };
 
   function renderTenantsRows(tenants, props) {
-    if (!tenants.length) return `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">Sin inquilinos registrados</td></tr>`;
+    if (!tenants.length) return `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">Sin PEDIDOS registrados</td></tr>`;
     return tenants.map(t => {
       const prop = props?.find(p => p.id === t.property_id);
       return `<tr>
@@ -939,7 +939,7 @@ const App = (() => {
 
       pc.innerHTML = `
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-          <button class="btn btn-secondary btn-sm" onclick="App.navigate('inquilinos')">← Volver</button>
+          <button class="btn btn-secondary btn-sm" onclick="App.navigate('PEDIDOS')">← Volver</button>
           ${canManage()?`
           <button class="btn btn-primary btn-sm" onclick="App.modals.editTenant('${t.id}')">✏️ Editar</button>
           <button class="btn btn-secondary btn-sm" onclick="App.modals.newPayment('${t.id}')">💳 Registrar Pago</button>
@@ -1417,7 +1417,7 @@ const App = (() => {
             <div class="finance-item expense"><div class="fi-label">Gastos de Inmuebles</div><div class="fi-val">${fmt(expenseCost)}</div></div>
             <div class="finance-item expense"><div class="fi-label">Nómina (Personal)</div><div class="fi-val">${fmt(staffCost)}</div></div>
             <div class="finance-item income"><div class="fi-label">Ingresos Renta</div><div class="fi-val">${fmt(rentIncome)}</div></div>
-            <div class="finance-item balance"><div class="fi-label">Balance por Inquilinos</div><div class="fi-val">${fmt(netIncome)}</div></div>
+            <div class="finance-item balance"><div class="fi-label">Balance por PEDIDOS</div><div class="fi-val">${fmt(netIncome)}</div></div>
           </div>
         </div>
       `;
@@ -1457,7 +1457,7 @@ const App = (() => {
     } catch(e) { pc.innerHTML = errorState(e); }
   };
 
-  Pages['socio-inquilinos'] = async function() {
+  Pages['socio-PEDIDOS'] = async function() {
     const pc = document.getElementById('page-content');
     try {
       const [payments, expenses, staff] = await Promise.all([
@@ -1467,7 +1467,7 @@ const App = (() => {
       const staffCost = staff.reduce((s,st)=>s+(st.salary||0),0);
       const expCost = expenses.reduce((s,e)=>s+(e.amount||0),0);
       pc.innerHTML = `
-        <div class="section-title mb-24">Ganancias por Inquilinos</div>
+        <div class="section-title mb-24">Ganancias por PEDIDOS</div>
         <div class="finance-summary">
           <div class="finance-item income"><div class="fi-label">Ingresos Renta Total</div><div class="fi-val">${fmt(income)}</div></div>
           <div class="finance-item expense"><div class="fi-label">Nómina Personal</div><div class="fi-val">${fmt(staffCost)}</div></div>
@@ -1808,13 +1808,13 @@ const App = (() => {
     try {
       id ? await DB.update('tenants', id, data) : await DB.insert('tenants', data);
       closeModal(); toast(id?'Inquilino actualizado':'Inquilino creado', 'success');
-      navigate('inquilinos');
+      navigate('PEDIDOS');
     } catch(e) { toast('Error: '+e.message, 'error'); }
   }
 
   async function deleteTenant(id) {
     confirm('¿Eliminar este inquilino y todos sus datos?', async()=>{
-      try { await DB.delete('tenants', id); toast('Inquilino eliminado', 'success'); navigate('inquilinos'); }
+      try { await DB.delete('tenants', id); toast('Inquilino eliminado', 'success'); navigate('PEDIDOS'); }
       catch(e) { toast('Error: '+e.message, 'error'); }
     });
   }
@@ -2413,8 +2413,8 @@ const App = (() => {
     });
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Inquilinos');
-    XLSX.writeFile(wb, 'inquilinos.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, 'PEDIDOS');
+    XLSX.writeFile(wb, 'PEDIDOS.xlsx');
   }
 
   // ── REPORTS ─────────────────────────────────────────────────────
@@ -2557,7 +2557,7 @@ const App = (() => {
 
       doc.setFontSize(12);
       doc.setTextColor(...dark);
-      doc.text('Inquilinos', 15, 78);
+      doc.text('PEDIDOS', 15, 78);
       doc.autoTable({
         startY: 83,
         head: [['Nombre','Cuarto','Renta/mes','Desde','Estado']],
@@ -2599,7 +2599,7 @@ const App = (() => {
         DB.get('property_expenses', { property_id: propId }),
       ]);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tenants.map(t=>({ Nombre:t.name, Cuarto:t.room, 'Renta/mes':t.monthly_rent, Estado:t.status }))), 'Inquilinos');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tenants.map(t=>({ Nombre:t.name, Cuarto:t.room, 'Renta/mes':t.monthly_rent, Estado:t.status }))), 'PEDIDOS');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expenses.map(e=>({ Concepto:e.concept, Categoría:e.category, Monto:e.amount, Fecha:fmtDate(e.expense_date||e.created_at) }))), 'Gastos');
       XLSX.writeFile(wb, `reporte_inmueble_${prop.name.replace(/\s/g,'_')}.xlsx`);
       toast('Excel generado','success');
