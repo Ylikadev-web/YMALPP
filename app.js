@@ -187,8 +187,8 @@ const App = (() => {
       <div class="nav-item" data-page="dashboard">
         <span class="nav-icon">🏠</span> Dashboard
       </div>
-      <div class="nav-item" data-page="inmuebles">
-        <span class="nav-icon">🏗️</span> Inmuebles
+      <div class="nav-item" data-page="Contratos">
+        <span class="nav-icon">🏗️</span> Contratos
       </div>
       <div class="nav-item" data-page="PEDIDOS">
         <span class="nav-icon">👥</span> PEDIDOS
@@ -228,8 +228,8 @@ const App = (() => {
       <div class="nav-item" data-page="dashboard">
         <span class="nav-icon">🏠</span> Dashboard
       </div>
-      <div class="nav-item" data-page="inmuebles">
-        <span class="nav-icon">🏗️</span> Inmuebles
+      <div class="nav-item" data-page="Contratos">
+        <span class="nav-icon">🏗️</span> Contratos
       </div>
       <div class="nav-item" data-page="PEDIDOS">
         <span class="nav-icon">👥</span> PEDIDOS
@@ -308,7 +308,7 @@ const App = (() => {
     });
     const titles = {
       dashboard: ['Dashboard', 'Inicio / Dashboard'],
-      inmuebles: ['Inmuebles', 'Inicio / Inmuebles'],
+      Contratos: ['Contratos', 'Inicio / Contratos'],
       PEDIDOS: ['PEDIDOS', 'Inicio / PEDIDOS'],
       personal: ['Personal', 'Inicio / Personal'],
       finanzas: ['Finanzas', 'Inicio / Finanzas'],
@@ -443,7 +443,7 @@ const App = (() => {
           <div class="stat-card gold">
             <div class="stat-icon">🏗️</div>
             <div class="stat-value">${props.length}</div>
-            <div class="stat-label">Inmuebles</div>
+            <div class="stat-label">Contratos</div>
           </div>
           <div class="stat-card blue">
             <div class="stat-icon">👥</div>
@@ -469,7 +469,7 @@ const App = (() => {
                 <div class="card-title">Contratos</div>
                 <div class="card-subtitle">Últimos registrados</div>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="App.navigate('inmuebles')">Ver todos →</button>
+              <button class="btn btn-primary btn-sm" onclick="App.navigate('Contratos')">Ver todos →</button>
             </div>
             <div class="table-wrap">
               <table>
@@ -482,7 +482,7 @@ const App = (() => {
                       <td>${tenants.filter(t => t.property_id === p.id).length}</td>
                       <td><span class="badge badge-${p.status === 'activo' ? 'green' : 'gray'}">${p.status || 'activo'}</span></td>
                     </tr>
-                  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px">Sin inmuebles</td></tr>'}
+                  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px">Sin Contratos</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -537,15 +537,15 @@ const App = (() => {
     }
   };
 
-  // ── INMUEBLES ────────────────────────────────────────────────────
-  Pages.inmuebles = async function() {
+  // ── Contratos ────────────────────────────────────────────────────
+  Pages.Contratos = async function() {
     const pc = document.getElementById('page-content');
     try {
       const props = await DB.get('properties');
       pc.innerHTML = `
         <div class="section-header">
           <div>
-            <div class="section-title">Inmuebles</div>
+            <div class="section-title">Contratos</div>
             <div class="section-subtitle">${props.length} inmueble(s) registrado(s)</div>
           </div>
           ${canManage() ? `<button class="btn btn-primary" onclick="App.modals.newProperty()">＋ Agregar Inmueble</button>` : ''}
@@ -562,7 +562,7 @@ const App = (() => {
           </div>
         </div>
         <div class="property-grid" id="property-grid">
-          ${props.length ? '' : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏗️</div><h4>Sin inmuebles</h4><p>Agrega tu primer inmueble para comenzar.</p></div>`}
+          ${props.length ? '' : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏗️</div><h4>Sin Contratos</h4><p>Agrega tu primer inmueble para comenzar.</p></div>`}
         </div>
       `;
       renderPropertyCards(props);
@@ -575,7 +575,7 @@ const App = (() => {
     const grid = document.getElementById('property-grid');
     if (!grid) return;
     if (!props.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏗️</div><h4>Sin inmuebles</h4><p>Agrega tu primer inmueble.</p></div>`;
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏗️</div><h4>Sin Contratos</h4><p>Agrega tu primer inmueble.</p></div>`;
       return;
     }
     grid.innerHTML = props.map(p => {
@@ -635,7 +635,7 @@ const App = (() => {
 
       pc.innerHTML = `
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-          <button class="btn btn-secondary btn-sm" onclick="App.navigate('inmuebles')">← Volver</button>
+          <button class="btn btn-secondary btn-sm" onclick="App.navigate('Contratos')">← Volver</button>
           ${canManage() ? `
           <button class="btn btn-primary btn-sm" onclick="App.modals.editProperty('${prop.id}')">✏️ Editar</button>
           <button class="btn btn-secondary btn-sm" onclick="App.Reports.propertyReport('${prop.id}')">📄 Reporte PDF</button>
@@ -868,7 +868,7 @@ const App = (() => {
               <input type="text" id="tenant-search" placeholder="Buscar inquilino..." oninput="App.filterTenants()"/>
             </div>
             <select class="form-control" style="width:180px" id="tenant-prop-filter" onchange="App.filterTenants()">
-              <option value="">Todos los inmuebles</option>
+              <option value="">Todos los Contratos</option>
               ${props.map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('')}
             </select>
           </div>
@@ -1080,7 +1080,7 @@ const App = (() => {
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Nombre</th><th>Rol</th><th>Teléfono</th><th>Email</th><th>Salario</th><th>Inmuebles</th>${canManage()?'<th>Acciones</th>':''}</tr></thead>
+              <thead><tr><th>Nombre</th><th>Rol</th><th>Teléfono</th><th>Email</th><th>Salario</th><th>Contratos</th>${canManage()?'<th>Acciones</th>':''}</tr></thead>
               <tbody>
                 ${staff.map(s => `
                   <tr>
@@ -1313,7 +1313,7 @@ const App = (() => {
                 ${canManage()?`<button class="btn btn-secondary btn-sm" onclick="App.modals.editProperty('${p.id}')">✏️</button>`:''}
               </div>
             </div>`;
-          }).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏢</div><h4>Sin espacios disponibles</h4><p>Marca inmuebles como "disponible" para que aparezcan aquí.</p></div>`}
+          }).join('') : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏢</div><h4>Sin espacios disponibles</h4><p>Marca Contratos como "disponible" para que aparezcan aquí.</p></div>`}
         </div>
       `;
     } catch(e) { pc.innerHTML = errorState(e); }
@@ -1414,7 +1414,7 @@ const App = (() => {
         <div class="card">
           <div class="card-header"><div class="card-title">Desglose de Egresos</div></div>
           <div class="finance-summary">
-            <div class="finance-item expense"><div class="fi-label">Gastos de Inmuebles</div><div class="fi-val">${fmt(expenseCost)}</div></div>
+            <div class="finance-item expense"><div class="fi-label">Gastos de Contratos</div><div class="fi-val">${fmt(expenseCost)}</div></div>
             <div class="finance-item expense"><div class="fi-label">Nómina (Personal)</div><div class="fi-val">${fmt(staffCost)}</div></div>
             <div class="finance-item income"><div class="fi-label">Ingresos Renta</div><div class="fi-val">${fmt(rentIncome)}</div></div>
             <div class="finance-item balance"><div class="fi-label">Balance por PEDIDOS</div><div class="fi-val">${fmt(netIncome)}</div></div>
@@ -1471,7 +1471,7 @@ const App = (() => {
         <div class="finance-summary">
           <div class="finance-item income"><div class="fi-label">Ingresos Renta Total</div><div class="fi-val">${fmt(income)}</div></div>
           <div class="finance-item expense"><div class="fi-label">Nómina Personal</div><div class="fi-val">${fmt(staffCost)}</div></div>
-          <div class="finance-item expense"><div class="fi-label">Gastos Inmuebles</div><div class="fi-val">${fmt(expCost)}</div></div>
+          <div class="finance-item expense"><div class="fi-label">Gastos Contratos</div><div class="fi-val">${fmt(expCost)}</div></div>
           <div class="finance-item balance"><div class="fi-label">Ganancia Neta</div><div class="fi-val">${fmt(income-staffCost-expCost)}</div></div>
         </div>
         <div class="card">
@@ -1711,7 +1711,7 @@ const App = (() => {
     try {
       id ? await DB.update('properties', id, data) : await DB.insert('properties', data);
       closeModal(); toast(id ? 'Inmueble actualizado' : 'Inmueble creado', 'success');
-      navigate('inmuebles');
+      navigate('Contratos');
     } catch(e) { toast('Error: ' + e.message, 'error'); }
   }
 
@@ -1720,7 +1720,7 @@ const App = (() => {
       try {
         await DB.delete('properties', id);
         toast('Inmueble eliminado', 'success');
-        navigate('inmuebles');
+        navigate('Contratos');
       } catch(e) { toast('Error: ' + e.message, 'error'); }
     });
   }
@@ -2401,8 +2401,8 @@ const App = (() => {
     }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Inmuebles');
-    XLSX.writeFile(wb, 'inmuebles.xlsx');
+    XLSX.utils.book_append_sheet(wb, ws, 'Contratos');
+    XLSX.writeFile(wb, 'Contratos.xlsx');
   }
 
   async function exportTenantsExcel() {
