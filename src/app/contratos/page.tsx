@@ -150,115 +150,129 @@ export default async function ContractsPage() {
                 <div className="text-muted-foreground">
                   {contract.start_date} a {contract.end_date}
                 </div>
-                <div className="rounded-lg border p-4">
-                  <div className="mb-3 font-medium">Agregar producto / partida</div>
-                  <form action={createContractItemAction} className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-                    <input name="contract_id" type="hidden" value={contract.id} />
-                    <Input name="item_number" placeholder="Partida" required />
-                    <Select name="product_id" required>
-                      <option value="">Producto</option>
-                      {products.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {product.sku} - {product.name}
-                        </option>
-                      ))}
-                    </Select>
-                    <Input name="description" placeholder="Descripcion" />
-                    <Input name="requisition_number" placeholder="Requisicion" />
-                    <Input name="brand" placeholder="Marca" />
-                    <Input name="unit" placeholder="Unidad" />
-                    <Input name="contracted_quantity" type="number" min="1" step="0.001" placeholder="Cantidad" />
-                    <Input name="unit_price" type="number" min="0" step="0.01" placeholder="P.U." />
-                    <Button type="submit">Agregar</Button>
-                  </form>
-                  <div className="mt-4 grid gap-3 rounded-md border bg-background/25 p-3 md:grid-cols-[1fr_auto]">
+                <details className="section-disclosure">
+                  <summary>
+                    <span>Productos, partidas y precarga CAAPS</span>
+                    <Badge variant="outline">
+                      {items.filter((item) => item.contract_id === contract.id).length} partidas
+                    </Badge>
+                  </summary>
+                  <div className="section-disclosure-body space-y-4">
+                    <form action={createContractItemAction} className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                      <input name="contract_id" type="hidden" value={contract.id} />
+                      <Input name="item_number" placeholder="Partida" required />
+                      <Select name="product_id" required>
+                        <option value="">Producto</option>
+                        {products.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.sku} - {product.name}
+                          </option>
+                        ))}
+                      </Select>
+                      <Input name="description" placeholder="Descripcion" />
+                      <Input name="requisition_number" placeholder="Requisicion" />
+                      <Input name="brand" placeholder="Marca" />
+                      <Input name="unit" placeholder="Unidad" />
+                      <Input name="contracted_quantity" type="number" min="1" step="0.001" placeholder="Cantidad" />
+                      <Input name="unit_price" type="number" min="0" step="0.01" placeholder="P.U." />
+                      <Button type="submit">Agregar</Button>
+                    </form>
+                    <div className="grid gap-3 rounded-md border bg-background/25 p-3 md:grid-cols-[1fr_auto]">
+                      <form
+                        action={importContractItemsSpreadsheetAction}
+                        className="grid gap-3 md:grid-cols-[1fr_auto]"
+                        encType="multipart/form-data"
+                      >
+                        <input name="contract_id" type="hidden" value={contract.id} />
+                        <Input name="file" type="file" accept=".xlsx,.xls,.csv,.pdf" required />
+                        <Button type="submit" variant="secondary">
+                          Importar partidas
+                        </Button>
+                      </form>
+                      <form action={importCaapsSeedAction}>
+                        <input name="contract_id" type="hidden" value={contract.id} />
+                        <Button type="submit" variant="outline">
+                          Precargar CAAPS26-04006
+                        </Button>
+                      </form>
+                    </div>
+                    <div className="overflow-hidden rounded-lg border">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Partida</th>
+                            <th>Producto</th>
+                            <th>Requisicion</th>
+                            <th>Contratado</th>
+                            <th>Pendiente</th>
+                            <th>Accion</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items
+                            .filter((item) => item.contract_id === contract.id)
+                            .map((item) => (
+                              <tr key={item.id}>
+                                <td>{item.item_number}</td>
+                                <td>
+                                  <div>{item.products?.name ?? "Producto"}</div>
+                                  {item.brand ? <div className="text-xs text-muted-foreground">{item.brand}</div> : null}
+                                </td>
+                                <td>{item.requisition_number ?? item.description ?? "Sin requisicion"}</td>
+                                <td>{Number(item.contracted_quantity).toLocaleString("es-MX")}</td>
+                                <td>{Number(item.pending_quantity).toLocaleString("es-MX")}</td>
+                                <td>
+                                  <form action={deleteContractItemAction}>
+                                    <input name="id" type="hidden" value={item.id} />
+                                    <Button size="sm" type="submit" variant="destructive">
+                                      Eliminar
+                                    </Button>
+                                  </form>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </details>
+                <details className="section-disclosure">
+                  <summary>
+                    <span>Adjuntos del contrato</span>
+                    <Badge variant="outline">
+                      {attachments.filter((attachment) => attachment.entity_id === contract.id).length} archivos
+                    </Badge>
+                  </summary>
+                  <div className="section-disclosure-body space-y-3">
                     <form
-                      action={importContractItemsSpreadsheetAction}
-                      className="grid gap-3 md:grid-cols-[1fr_auto]"
+                      action={uploadGenericAttachmentAction}
+                      className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
                       encType="multipart/form-data"
                     >
-                      <input name="contract_id" type="hidden" value={contract.id} />
-                      <Input name="file" type="file" accept=".xlsx,.xls,.csv,.pdf" required />
-                      <Button type="submit" variant="secondary">
-                        Importar partidas
-                      </Button>
+                      <input name="entity_type" type="hidden" value="contract" />
+                      <input name="entity_id" type="hidden" value={contract.id} />
+                      <Input name="name" placeholder="Nombre del archivo" />
+                      <Input name="file" type="file" required />
+                      <Button type="submit">Adjuntar</Button>
                     </form>
-                    <form action={importCaapsSeedAction}>
-                      <input name="contract_id" type="hidden" value={contract.id} />
-                      <Button type="submit" variant="outline">
-                        Precargar CAAPS26-04006
-                      </Button>
-                    </form>
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-lg border">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Partida</th>
-                        <th>Producto</th>
-                        <th>Requisicion</th>
-                        <th>Contratado</th>
-                        <th>Pendiente</th>
-                        <th>Accion</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items
-                        .filter((item) => item.contract_id === contract.id)
-                        .map((item) => (
-                          <tr key={item.id}>
-                            <td>{item.item_number}</td>
-                            <td>
-                              <div>{item.products?.name ?? "Producto"}</div>
-                              {item.brand ? <div className="text-xs text-muted-foreground">{item.brand}</div> : null}
-                            </td>
-                            <td>{item.requisition_number ?? item.description ?? "Sin requisicion"}</td>
-                            <td>{Number(item.contracted_quantity).toLocaleString("es-MX")}</td>
-                            <td>{Number(item.pending_quantity).toLocaleString("es-MX")}</td>
-                            <td>
-                              <form action={deleteContractItemAction}>
-                                <input name="id" type="hidden" value={item.id} />
-                                <Button size="sm" type="submit" variant="destructive">
-                                  Eliminar
-                                </Button>
-                              </form>
-                            </td>
-                          </tr>
+                    <div className="flex flex-wrap gap-2">
+                      {attachments
+                        .filter((attachment) => attachment.entity_id === contract.id)
+                        .map((attachment) => (
+                          <form key={attachment.id} action={deleteAttachmentAction} className="flex items-center gap-2">
+                            <Badge variant="outline">{attachment.name}</Badge>
+                            <a className="text-sm text-primary underline-offset-4 hover:underline" href={`/api/files/${attachment.id}`}>
+                              Abrir
+                            </a>
+                            <input name="id" type="hidden" value={attachment.id} />
+                            <Button size="sm" type="submit" variant="ghost">
+                              Quitar
+                            </Button>
+                          </form>
                         ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="rounded-lg border p-4">
-                  <div className="mb-3 font-medium">Adjuntos del contrato</div>
-                  <form
-                    action={uploadGenericAttachmentAction}
-                    className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
-                    encType="multipart/form-data"
-                  >
-                    <input name="entity_type" type="hidden" value="contract" />
-                    <input name="entity_id" type="hidden" value={contract.id} />
-                    <Input name="name" placeholder="Nombre del archivo" />
-                    <Input name="file" type="file" required />
-                    <Button type="submit">Adjuntar</Button>
-                  </form>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {attachments
-                      .filter((attachment) => attachment.entity_id === contract.id)
-                      .map((attachment) => (
-                        <form key={attachment.id} action={deleteAttachmentAction} className="flex items-center gap-2">
-                          <Badge variant="outline">{attachment.name}</Badge>
-                          <a className="text-sm text-primary underline-offset-4 hover:underline" href={`/api/files/${attachment.id}`}>
-                            Abrir
-                          </a>
-                          <input name="id" type="hidden" value={attachment.id} />
-                          <Button size="sm" type="submit" variant="ghost">
-                            Quitar
-                          </Button>
-                        </form>
-                      ))}
+                    </div>
                   </div>
-                </div>
+                </details>
               </CardContent>
             </Card>
           ))}

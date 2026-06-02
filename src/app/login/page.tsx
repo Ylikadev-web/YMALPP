@@ -1,7 +1,7 @@
-import { Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/app/login/login-form";
 import { getSessionProfile } from "@/lib/auth/session";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 
 export default async function LoginPage() {
@@ -12,16 +12,26 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="mb-3 flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Building2 />
+    <main className="login-stage relative flex items-center justify-center p-4">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-75">
+        <Image
+          src="/brand/yilka-logo.png"
+          alt=""
+          aria-hidden="true"
+          width={720}
+          height={720}
+          priority
+          className="login-logo-ambient w-[min(76vw,720px)] select-none object-contain"
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+      <Card className="login-card relative w-full max-w-md">
+        <CardHeader className="items-center text-center">
+          <div className="mb-2 flex size-20 items-center justify-center overflow-hidden rounded-lg border bg-black/45 shadow-[0_0_54px_-22px_rgba(0,220,220,0.9)]">
+            <Image src="/brand/yilka-logo.png" alt="YLIKA" width={64} height={64} className="h-16 w-16 object-cover" />
           </div>
-          <CardTitle>Acceso YMALPP ERP</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Autenticacion preparada para Supabase Auth con sesiones protegidas por middleware.
-          </p>
+          <CardTitle className="text-2xl">YLIKA ERP</CardTitle>
+          <p className="text-sm text-muted-foreground">Acceso corporativo</p>
         </CardHeader>
         <CardContent>
           <LoginForm />
