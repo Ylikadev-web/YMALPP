@@ -7,6 +7,10 @@ export const dynamic = "force-dynamic";
 
 type ReportRow = Record<string, string | number | null>;
 
+function bufferBody(buffer: Buffer) {
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+}
+
 function fileName(moduleName: string, extension: string) {
   const stamp = new Date().toISOString().slice(0, 10);
   return `ymalpp-${moduleName}-${stamp}.${extension}`;
@@ -127,7 +131,7 @@ async function excelResponse(moduleName: string, rows: ReportRow[]) {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
   const body = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" }) as Buffer;
 
-  return new Response(body, {
+  return new Response(bufferBody(body), {
     headers: {
       "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "content-disposition": `attachment; filename="${fileName(moduleName, "xlsx")}"`
@@ -228,7 +232,7 @@ function pngResponse(moduleName: string, rows: ReportRow[]) {
     pngChunk("IEND", Buffer.alloc(0))
   ]);
 
-  return new Response(png, {
+  return new Response(bufferBody(png), {
     headers: {
       "content-type": "image/png",
       "content-disposition": `attachment; filename="${fileName(moduleName, "png")}"`
