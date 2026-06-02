@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { createOrderAction } from "@/lib/actions/erp-actions";
-import { getContractItems, getContracts, getOrders, getProducts } from "@/lib/db/live-queries";
+import { createOrderAction, deleteAttachmentAction, uploadGenericAttachmentAction } from "@/lib/actions/erp-actions";
+import { getAttachments, getContractItems, getContracts, getOrders, getProducts } from "@/lib/db/live-queries";
 
 export default async function OrdersPage() {
-  const [orders, contracts, items, products] = await Promise.all([
+  const [orders, contracts, items, products, orderAttachments] = await Promise.all([
     getOrders(),
     getContracts(),
     getContractItems(),
-    getProducts()
+    getProducts(),
+    getAttachments("order")
   ]);
 
   return (
@@ -80,15 +81,45 @@ export default async function OrdersPage() {
               <CardHeader>
                 <CardTitle>{order.folio}</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <div className="font-medium">{order.contracts?.code ?? "Sin contrato"}</div>
-                  <div className="text-sm text-muted-foreground">{order.created_at}</div>
+              <CardContent className="space-y-3">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <div className="font-medium">{order.contracts?.code ?? "Sin contrato"}</div>
+                    <div className="text-sm text-muted-foreground">{order.created_at}</div>
+                  </div>
+                  <Badge variant={order.status.includes("pendiente") ? "warning" : "success"}>
+                    {order.status.includes("pendiente") ? <Lock className="mr-1 size-3" /> : null}
+                    {order.status.replace("_", " ")}
+                  </Badge>
                 </div>
-                <Badge variant={order.status.includes("pendiente") ? "warning" : "success"}>
-                  {order.status.includes("pendiente") ? <Lock className="mr-1 size-3" /> : null}
-                  {order.status.replace("_", " ")}
-                </Badge>
+                <form
+                  action={uploadGenericAttachmentAction}
+                  className="grid gap-2 md:grid-cols-[1fr_1fr_auto]"
+                  encType="multipart/form-data"
+                >
+                  <input name="entity_type" type="hidden" value="order" />
+                  <input name="entity_id" type="hidden" value={order.id} />
+                  <Input name="name" placeholder="Documento pedido" />
+                  <Input name="file" type="file" required />
+                  <Button size="sm" type="submit" variant="outline">
+                    Adjuntar
+                  </Button>
+                </form>
+                <div className="flex flex-wrap gap-2">
+                  {orderAttachments
+                    .filter((attachment) => attachment.entity_id === order.id)
+                    .map((attachment) => (
+                      <form key={attachment.id} action={deleteAttachmentAction} className="flex items-center gap-2">
+                        <a className="text-sm text-primary underline-offset-4 hover:underline" href={`/api/files/${attachment.id}`}>
+                          {attachment.name}
+                        </a>
+                        <input name="id" type="hidden" value={attachment.id} />
+                        <Button size="sm" type="submit" variant="ghost">
+                          Quitar
+                        </Button>
+                      </form>
+                    ))}
+                </div>
               </CardContent>
             </Card>
           ))}

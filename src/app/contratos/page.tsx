@@ -5,15 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { createContractAction } from "@/lib/actions/erp-actions";
-import { getClients, getContracts, getProducts } from "@/lib/db/live-queries";
+import {
+  createContractAction,
+  createContractItemAction,
+  deleteAttachmentAction,
+  deleteContractAction,
+  deleteContractItemAction,
+  importCaapsSeedAction,
+  importContractItemsSpreadsheetAction,
+  uploadGenericAttachmentAction
+} from "@/lib/actions/erp-actions";
+import { contractTypeLabel, mexicanContractTypes } from "@/lib/contract-types";
+import { getAttachments, getClients, getContractItems, getContracts, getProducts } from "@/lib/db/live-queries";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function ContractsPage() {
-  const [contracts, clients, products] = await Promise.all([
+  const [contracts, clients, products, items, attachments] = await Promise.all([
     getContracts(),
     getClients(),
-    getProducts()
+    getProducts(),
+    getContractItems(),
+    getAttachments("contract")
   ]);
 
   return (
@@ -50,10 +62,11 @@ export default async function ContractsPage() {
               <label className="space-y-2 text-sm font-medium">
                 Tipo
                 <Select name="contract_type" defaultValue="directo">
-                  <option value="licitacion">Licitacion</option>
-                  <option value="directo">Directo</option>
-                  <option value="marco">Marco</option>
-                  <option value="servicio">Servicio</option>
+                  {mexicanContractTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
                 </Select>
               </label>
               <label className="space-y-2 text-sm font-medium">
@@ -107,23 +120,144 @@ export default async function ContractsPage() {
             </form>
           </CardContent>
         </Card>
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="space-y-4">
           {contracts.map((contract) => (
             <Card key={contract.id}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-3">
-                  <CardTitle>{contract.code}</CardTitle>
-                  <Badge variant={contract.status === "en_riesgo" ? "warning" : "success"}>
-                    {contract.status.replace("_", " ")}
-                  </Badge>
+                  <div>
+                    <CardTitle>{contract.code}</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {contractTypeLabel(contract.contract_type)} - {contract.clients?.name ?? "Sin cliente"}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant={contract.status === "en_riesgo" ? "warning" : "success"}>
+                      {contract.status.replace("_", " ")}
+                    </Badge>
+                    <form action={deleteContractAction}>
+                      <input name="id" type="hidden" value={contract.id} />
+                      <Button size="sm" type="submit" variant="destructive">
+                        Eliminar
+                      </Button>
+                    </form>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
+              <CardContent className="space-y-5 text-sm">
                 <div className="font-medium">{contract.name}</div>
-                <div className="text-muted-foreground">{contract.clients?.name ?? "Sin cliente"}</div>
                 <div>{formatCurrency(contract.amount)}</div>
                 <div className="text-muted-foreground">
                   {contract.start_date} a {contract.end_date}
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="mb-3 font-medium">Agregar producto / partida</div>
+                  <form action={createContractItemAction} className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                    <input name="contract_id" type="hidden" value={contract.id} />
+                    <Input name="item_number" placeholder="Partida" required />
+                    <Select name="product_id" required>
+                      <option value="">Producto</option>
+                      {products.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.sku} - {product.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <Input name="description" placeholder="Descripcion" />
+                    <Input name="requisition_number" placeholder="Requisicion" />
+                    <Input name="brand" placeholder="Marca" />
+                    <Input name="unit" placeholder="Unidad" />
+                    <Input name="contracted_quantity" type="number" min="1" step="0.001" placeholder="Cantidad" />
+                    <Input name="unit_price" type="number" min="0" step="0.01" placeholder="P.U." />
+                    <Button type="submit">Agregar</Button>
+                  </form>
+                  <div className="mt-4 grid gap-3 rounded-md border bg-background/25 p-3 md:grid-cols-[1fr_auto]">
+                    <form
+                      action={importContractItemsSpreadsheetAction}
+                      className="grid gap-3 md:grid-cols-[1fr_auto]"
+                      encType="multipart/form-data"
+                    >
+                      <input name="contract_id" type="hidden" value={contract.id} />
+                      <Input name="file" type="file" accept=".xlsx,.xls,.csv,.pdf" required />
+                      <Button type="submit" variant="secondary">
+                        Importar partidas
+                      </Button>
+                    </form>
+                    <form action={importCaapsSeedAction}>
+                      <input name="contract_id" type="hidden" value={contract.id} />
+                      <Button type="submit" variant="outline">
+                        Precargar CAAPS26-04006
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-lg border">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Partida</th>
+                        <th>Producto</th>
+                        <th>Requisicion</th>
+                        <th>Contratado</th>
+                        <th>Pendiente</th>
+                        <th>Accion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items
+                        .filter((item) => item.contract_id === contract.id)
+                        .map((item) => (
+                          <tr key={item.id}>
+                            <td>{item.item_number}</td>
+                            <td>
+                              <div>{item.products?.name ?? "Producto"}</div>
+                              {item.brand ? <div className="text-xs text-muted-foreground">{item.brand}</div> : null}
+                            </td>
+                            <td>{item.requisition_number ?? item.description ?? "Sin requisicion"}</td>
+                            <td>{Number(item.contracted_quantity).toLocaleString("es-MX")}</td>
+                            <td>{Number(item.pending_quantity).toLocaleString("es-MX")}</td>
+                            <td>
+                              <form action={deleteContractItemAction}>
+                                <input name="id" type="hidden" value={item.id} />
+                                <Button size="sm" type="submit" variant="destructive">
+                                  Eliminar
+                                </Button>
+                              </form>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <div className="mb-3 font-medium">Adjuntos del contrato</div>
+                  <form
+                    action={uploadGenericAttachmentAction}
+                    className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+                    encType="multipart/form-data"
+                  >
+                    <input name="entity_type" type="hidden" value="contract" />
+                    <input name="entity_id" type="hidden" value={contract.id} />
+                    <Input name="name" placeholder="Nombre del archivo" />
+                    <Input name="file" type="file" required />
+                    <Button type="submit">Adjuntar</Button>
+                  </form>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {attachments
+                      .filter((attachment) => attachment.entity_id === contract.id)
+                      .map((attachment) => (
+                        <form key={attachment.id} action={deleteAttachmentAction} className="flex items-center gap-2">
+                          <Badge variant="outline">{attachment.name}</Badge>
+                          <a className="text-sm text-primary underline-offset-4 hover:underline" href={`/api/files/${attachment.id}`}>
+                            Abrir
+                          </a>
+                          <input name="id" type="hidden" value={attachment.id} />
+                          <Button size="sm" type="submit" variant="ghost">
+                            Quitar
+                          </Button>
+                        </form>
+                      ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>

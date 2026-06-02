@@ -124,7 +124,11 @@ export default async function HrPage() {
                   {documents.map((document) => (
                     <tr key={document.id}>
                       <td>{document.employees?.full_name ?? "Empleado"}</td>
-                      <td className="font-medium">{document.name}</td>
+                      <td className="font-medium">
+                        <a className="text-primary underline-offset-4 hover:underline" href={`/api/employee-files/${document.id}`}>
+                          {document.name}
+                        </a>
+                      </td>
                       <td>
                         <Badge variant="outline">{document.status}</Badge>
                       </td>

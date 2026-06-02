@@ -16,6 +16,15 @@ export type LiveProduct = {
   default_price: number;
 };
 
+export type LiveProcessStage = {
+  id: string;
+  contract_type: string;
+  name: string;
+  sort_order: number;
+  required: boolean;
+  active: boolean;
+};
+
 export type LiveContract = {
   id: string;
   code: string;
@@ -33,11 +42,52 @@ export type LiveContractItem = {
   contract_id: string;
   product_id: string;
   item_number: string;
+  description?: string | null;
+  requisition_number?: string | null;
+  requisition_area?: string | null;
+  budget_item?: string | null;
+  authorized_amount?: number | null;
+  brand?: string | null;
+  unit?: string | null;
+  import_source?: string | null;
   contracted_quantity: number;
   delivered_quantity: number;
   pending_quantity: number;
   unit_price: number;
   products?: { name?: string | null; sku?: string | null } | null;
+};
+
+export type LiveQuote = {
+  id: string;
+  folio: string;
+  title: string;
+  status: string;
+  total: number;
+  valid_until?: string | null;
+  clients?: { name?: string | null } | null;
+};
+
+export type LiveQuoteTemplate = {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+  primary_color: string;
+  secondary_color: string;
+  header?: Record<string, unknown> | null;
+  footer?: Record<string, unknown> | null;
+  signature?: Record<string, unknown> | null;
+  editable_schema?: Record<string, unknown> | null;
+};
+
+export type LiveAttachment = {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  name: string;
+  storage_path: string;
+  mime_type?: string | null;
+  file_size?: number | null;
+  created_at: string;
 };
 
 export type LiveWarehouse = {
@@ -87,6 +137,7 @@ export type LiveFinanceAccount = {
 
 export type LiveDocument = {
   id: string;
+  contract_id: string;
   name: string;
   required: boolean;
   status: string;
@@ -124,7 +175,11 @@ async function safeSelect<T>(query: PromiseLike<{ data: unknown; error: unknown 
 export async function getClients() {
   const supabase = await createClient();
   return safeSelect<LiveClient>(
-    supabase.from("clients").select("id,name,rfc,email,phone").order("created_at", { ascending: false })
+    supabase
+      .from("clients")
+      .select("id,name,rfc,email,phone")
+      .eq("active", true)
+      .order("created_at", { ascending: false })
   );
 }
 
@@ -134,6 +189,7 @@ export async function getProducts() {
     supabase
       .from("products")
       .select("id,sku,name,unit,default_price")
+      .eq("active", true)
       .order("created_at", { ascending: false })
   );
 }
@@ -153,7 +209,7 @@ export async function getContractItems(contractId?: string) {
   let query = supabase
     .from("contract_items")
     .select(
-      "id,contract_id,product_id,item_number,contracted_quantity,delivered_quantity,pending_quantity,unit_price,products(name,sku)"
+      "id,contract_id,product_id,item_number,description,requisition_number,requisition_area,budget_item,authorized_amount,brand,unit,import_source,contracted_quantity,delivered_quantity,pending_quantity,unit_price,products(name,sku)"
     )
     .order("created_at", { ascending: false });
 
@@ -162,6 +218,56 @@ export async function getContractItems(contractId?: string) {
   }
 
   return safeSelect<LiveContractItem>(query);
+}
+
+export async function getQuotes() {
+  const supabase = await createClient();
+  return safeSelect<LiveQuote>(
+    supabase
+      .from("quotes")
+      .select("id,folio,title,status,total,valid_until,clients(name)")
+      .order("created_at", { ascending: false })
+  );
+}
+
+export async function getQuoteTemplates() {
+  const supabase = await createClient();
+  return safeSelect<LiveQuoteTemplate>(
+    supabase
+      .from("quote_templates")
+      .select("id,name,logo_url,primary_color,secondary_color,header,footer,signature,editable_schema")
+      .order("created_at", { ascending: false })
+  );
+}
+
+export async function getContractProcessStages() {
+  const supabase = await createClient();
+  return safeSelect<LiveProcessStage>(
+    supabase
+      .from("contract_process_stages")
+      .select("id,contract_type,name,sort_order,required,active")
+      .eq("active", true)
+      .order("contract_type", { ascending: true })
+      .order("sort_order", { ascending: true })
+  );
+}
+
+export async function getAttachments(entityType?: string, entityId?: string) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("erp_attachments")
+    .select("id,entity_type,entity_id,name,storage_path,mime_type,file_size,created_at")
+    .order("created_at", { ascending: false });
+
+  if (entityType) {
+    query = query.eq("entity_type", entityType);
+  }
+
+  if (entityId) {
+    query = query.eq("entity_id", entityId);
+  }
+
+  return safeSelect<LiveAttachment>(query);
 }
 
 export async function getWarehouses() {
@@ -224,7 +330,7 @@ export async function getBidDocuments() {
   return safeSelect<LiveDocument>(
     supabase
       .from("contract_documents")
-      .select("id,name,required,status,current_version,contracts(code,name)")
+      .select("id,contract_id,name,required,status,current_version,contracts(code,name)")
       .order("created_at", { ascending: false })
   );
 }

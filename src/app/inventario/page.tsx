@@ -4,14 +4,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { addInventoryStockAction, createProductAction, createWarehouseAction } from "@/lib/actions/erp-actions";
-import { getInventoryItems, getProducts, getWarehouses } from "@/lib/db/live-queries";
+import {
+  addInventoryStockAction,
+  createProductAction,
+  createWarehouseAction,
+  deleteAttachmentAction,
+  deleteProductAction,
+  uploadGenericAttachmentAction
+} from "@/lib/actions/erp-actions";
+import { getAttachments, getInventoryItems, getProducts, getWarehouses } from "@/lib/db/live-queries";
 
 export default async function InventoryPage() {
-  const [inventory, products, warehouses] = await Promise.all([
+  const [inventory, products, warehouses, productAttachments] = await Promise.all([
     getInventoryItems(),
     getProducts(),
-    getWarehouses()
+    getWarehouses(),
+    getAttachments("product")
   ]);
   const totalStock = inventory.reduce((sum, item) => sum + Number(item.stock), 0);
   const totalReserved = inventory.reduce((sum, item) => sum + Number(item.reserved_quantity), 0);
@@ -65,6 +73,61 @@ export default async function InventoryPage() {
             </CardContent>
           </Card>
         </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Catalogo de productos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {products.map((product) => (
+              <div key={product.id} className="rounded-md border p-3">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <Badge variant="outline">{product.sku}</Badge>
+                    <div className="mt-2 font-medium">{product.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {product.unit} - ${Number(product.default_price).toLocaleString("es-MX")}
+                    </div>
+                  </div>
+                  <form action={deleteProductAction}>
+                    <input name="id" type="hidden" value={product.id} />
+                    <Button size="sm" type="submit" variant="destructive">
+                      Quitar del catalogo
+                    </Button>
+                  </form>
+                </div>
+                <form
+                  action={uploadGenericAttachmentAction}
+                  className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_auto]"
+                  encType="multipart/form-data"
+                >
+                  <input name="entity_type" type="hidden" value="product" />
+                  <input name="entity_id" type="hidden" value={product.id} />
+                  <Input name="name" placeholder="Ficha tecnica / evidencia" />
+                  <Input name="file" type="file" required />
+                  <Button size="sm" type="submit" variant="outline">
+                    Adjuntar
+                  </Button>
+                </form>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {productAttachments
+                    .filter((attachment) => attachment.entity_id === product.id)
+                    .map((attachment) => (
+                      <form key={attachment.id} action={deleteAttachmentAction} className="flex items-center gap-2">
+                        <a className="text-sm text-primary underline-offset-4 hover:underline" href={`/api/files/${attachment.id}`}>
+                          {attachment.name}
+                        </a>
+                        <input name="id" type="hidden" value={attachment.id} />
+                        <Button size="sm" type="submit" variant="ghost">
+                          Quitar
+                        </Button>
+                      </form>
+                    ))}
+                </div>
+              </div>
+            ))}
+            {products.length === 0 ? <p className="text-sm text-muted-foreground">Aun no hay productos activos.</p> : null}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Entrada de inventario</CardTitle>
